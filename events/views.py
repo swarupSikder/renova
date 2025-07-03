@@ -93,7 +93,7 @@ def add_event(request):
 # - - - - - - - - - - - #
 def dashboard(request):
     today = date.today()
-    filter_type = request.GET.get("filter", "today")  # default is today's events
+    filter_type = request.GET.get("filter", "today")  #default is today's events
 
     all_events = Event.objects.all()
     upcoming_events = all_events.filter(date__gt=today)

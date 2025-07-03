@@ -31,19 +31,38 @@
     <div class="max-w-7xl mx-auto">
         <h3 class="text-2xl font-semibold text-gray-800 mb-4">{{ filter_title }}</h3>
         {% if filtered_events %}
-            <div class="space-y-4">
-                {% for event in filtered_events %}
-                    <div class="bg-white p-4 rounded-lg shadow">
-                        <h4 class="text-lg font-bold text-gray-800">{{ event.name }}</h4>
-                        <p class="text-sm text-gray-600">Date: {{ event.date }} at {{ event.time }}</p>
-                        <p class="text-sm text-gray-600">Location: {{ event.location }}</p>
-                        <p class="text-sm text-gray-600">Category: {{ event.category }}</p>
-                    </div>
-                {% endfor %}
+            <div class="overflow-x-auto bg-white rounded-xl shadow">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event Name</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for event in filtered_events %}
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ event.name }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ event.date }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ event.time }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ event.location }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                <button class="bg-slate-100 hover:bg-amber-200 hover:cursor-pointer text-slate-600 px-2 py-1 rounded-md"><i class="fa-solid fa-eye text-xs"></i></button>
+                                <button class="bg-green-100 hover:bg-amber-200 hover:cursor-pointer text-green-600 px-2 py-1 rounded-md"><i class="fa-solid fa-pen-fancy text-xs"></i></button>
+                                <button class="bg-red-300 hover:bg-red-500 hover:cursor-pointer text-white px-2 py-1 rounded-md"><i class="fa-solid fa-xmark"></i></button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         {% else %}
             <p class="text-gray-500">No events to display.</p>
         {% endif %}
     </div>
+
 </div>
 {% endblock %}
