@@ -99,9 +99,9 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
     'default': dj_database_url.config(
-        # Replace this value with your local database's connection string.
-        default='postgresql://renova_db_8tr0_user:wtvP03PvsUFoPIl6psNKHU2ucOcXANKe@dpg-d1j38015pdvs73cofjt0-a.oregon-postgres.render.com/renova_db_8tr0',
-        conn_max_age=600
+        default='postgresql://renova_db_2u1o_user:Drfvm9hrbMu1XaqGR0NduAvZXEfjdfDU@dpg-d1j47h7diees73ck8hag-a.oregon-postgres.render.com/renova_db_2u1o',
+        conn_max_age=600,
+        ssl_require=True
     )
 }
 
