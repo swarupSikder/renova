@@ -101,7 +101,6 @@ DATABASES = {
     'default': dj_database_url.config(
         default='postgresql://renova_db_2u1o_user:Drfvm9hrbMu1XaqGR0NduAvZXEfjdfDU@dpg-d1j47h7diees73ck8hag-a.oregon-postgres.render.com/renova_db_2u1o',
         conn_max_age=600,
-        ssl_require=True
     )
 }
 
