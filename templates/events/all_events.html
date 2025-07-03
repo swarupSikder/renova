@@ -1,0 +1,72 @@
+{% extends "index.html" %}
+
+{% block events %}
+<div class="min-h-screen pt-24 bg-gray-50">
+  <div class="container mx-auto px-4">
+    {% if messages %}
+      <div class="fixed top-4 right-4 z-50">
+        {% for message in messages %}
+          <div class="bg-green-500 text-white px-6 py-3 rounded shadow-md animate-fade-in-out">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <!-- Search Box -->
+    <form method="GET" class="max-w-md mx-auto my-6">
+        <div class="flex gap-2">
+            <input
+                type="text"
+                name="q"
+                placeholder="Search by name or location..."
+                value="{{ query }}"
+                class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:border-primary"
+            />
+
+            <button type="submit" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-sky-600 transition">
+                Search
+            </button>
+        </div>
+    </form>
+
+
+    <div class="overflow-x-auto shadow-md rounded-lg">
+      <table class="min-w-full text-sm text-left text-gray-700 bg-white border border-gray-200">
+        <thead class="bg-gray-100 text-gray-700 uppercase text-xs">
+          <tr>
+            <th class="px-6 py-3">Event Name</th>
+            <th class="px-6 py-3">Date</th>
+            <th class="px-6 py-3">Time</th>
+            <th class="px-6 py-3">Location</th>
+            <th class="px-6 py-3">Category</th>
+            <th class="px-6 py-3">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for event in events %}
+          <tr class="border-b hover:bg-gray-50">
+            <td class="px-6 py-4">{{ event.name }}</td>
+            <td class="px-6 py-4">{{ event.date }}</td>
+            <td class="px-6 py-4">{{ event.time }}</td>
+            <td class="px-6 py-4">{{ event.location }}</td>
+            <td class="px-6 py-4">{{ event.category.get_name_display }}</td>
+            <td>
+                <a href="{% url 'event_detail' event.id %}">
+                    <button class="bg-orange-100 text-primary hover:text-white hover:bg-primary hover:cursor-pointer transition-all ease-in-out duration-200 text-sm rounded-md px-4 py-2 font-semibold">
+                        View
+                    </button>
+                </a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" class="text-center px-6 py-4 text-gray-500">No events found.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

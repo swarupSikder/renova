@@ -1,0 +1,49 @@
+{% extends "index.html" %}
+
+{% block events %}
+<div class="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8 mt-24">
+    <!-- Title -->
+    <div class="max-w-7xl mx-auto mb-8">
+        <h2 class="text-3xl font-bold text-gray-800">Organizer Dashboard</h2>
+    </div>
+
+    <!-- Stats Grid (with links for filtering) -->
+    <div class="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
+        <a href="?filter=all" class="bg-white p-6 rounded-xl shadow text-center hover:bg-blue-50">
+            <h3 class="text-lg font-semibold text-gray-700">Total Events</h3>
+            <p class="text-3xl font-bold text-blue-600">{{ total_events }}</p>
+        </a>
+        <a href="?filter=upcoming" class="bg-white p-6 rounded-xl shadow text-center hover:bg-green-50">
+            <h3 class="text-lg font-semibold text-gray-700">Upcoming Events</h3>
+            <p class="text-3xl font-bold text-green-600">{{ upcoming_events }}</p>
+        </a>
+        <a href="?filter=past" class="bg-white p-6 rounded-xl shadow text-center hover:bg-red-50">
+            <h3 class="text-lg font-semibold text-gray-700">Past Events</h3>
+            <p class="text-3xl font-bold text-red-600">{{ past_events }}</p>
+        </a>
+        <div class="bg-white p-6 rounded-xl shadow text-center">
+            <h3 class="text-lg font-semibold text-gray-700">Participants</h3>
+            <p class="text-3xl font-bold text-purple-600">{{ total_participants }}</p>
+        </div>
+    </div>
+
+    <!-- Filtered Events Section -->
+    <div class="max-w-7xl mx-auto">
+        <h3 class="text-2xl font-semibold text-gray-800 mb-4">{{ filter_title }}</h3>
+        {% if filtered_events %}
+            <div class="space-y-4">
+                {% for event in filtered_events %}
+                    <div class="bg-white p-4 rounded-lg shadow">
+                        <h4 class="text-lg font-bold text-gray-800">{{ event.name }}</h4>
+                        <p class="text-sm text-gray-600">Date: {{ event.date }} at {{ event.time }}</p>
+                        <p class="text-sm text-gray-600">Location: {{ event.location }}</p>
+                        <p class="text-sm text-gray-600">Category: {{ event.category }}</p>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-gray-500">No events to display.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

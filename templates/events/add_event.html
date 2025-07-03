@@ -1,0 +1,17 @@
+{% extends "index.html" %}
+
+{% block events %}
+<div class="min-h-screen"> 
+    <div class="pt-24">
+        <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-xl mx-auto mt-12">
+            <h2 class="text-2xl font-bold mb-6 text-center text-sky-300">Create New <span class="text-primary">Event</span></h2>
+            <form method="POST">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" class="mt-4 w-full bg-primary text-white py-2 rounded-lg hover:bg-slate-500 transition">Submit Event</button>
+            </form>
+
+        </div>
+    </div>
+</div>
+{% endblock events %}

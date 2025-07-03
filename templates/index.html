@@ -1,0 +1,98 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Home</title>
+
+    <script src="https://kit.fontawesome.com/d6d0eff34a.js" crossorigin="anonymous"></script>
+    <link rel="icon" type="image/png" href="{% static 'images/favicon.png' %}">
+    <link rel="stylesheet" href="{% static 'css/output.css' %}">
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    <style>
+        @keyframes fade-in-out {
+            0% { opacity: 0; transform: translateY(-10px); }
+            10% { opacity: 1; transform: translateY(0); }
+            90% { opacity: 1; }
+            100% { opacity: 0; transform: translateY(-10px); }
+        }
+        .animate-fade-in-out {
+            animation: fade-in-out 4s ease-in-out forwards;
+        }
+    </style>
+</head>
+<body class="font-sans">
+
+    <!--        -->
+    <!-- Header -->
+    <!--        -->
+    <nav class="absolute top-0 left-0 w-full flex items-center justify-between px-10 py-6 bg-black/30 backdrop-blur-sm text-white z-10">
+        <!-- Logo or Site Name -->
+        <div class="text-2xl font-bold tracking-wide flex items-center justify-center">
+            <img class="h-12 mr-2" src="{% static 'images/renova_logo.png' %}" alt="">
+            Renova
+        </div>
+
+
+        <!-- Navigation Links -->
+        <div class="space-x-6 text-lg">
+            <a href="{% url 'home' %}" class="hover:text-primary transition">Home</a>
+            <a href="{% url 'all_events' %}" class="hover:text-primary transition">All Events</a>
+            <a href="{% url 'add_event' %}" class="hover:text-primary transition">Add Event</a>
+            <a href="{% url 'dashboard' %}" class="hover:text-primary transition">Dashboard</a>
+        </div>
+
+        <!-- Login/Register -->
+        <div>
+            <a href="#" class="bg-primary text-white font-medium px-6 py-3 rounded hover:bg-orange-300 transition">
+                LOGIN
+            </a>
+        </div>
+    </nav>
+
+    
+
+
+
+
+    <!--              -->
+    <!-- Dynamic View -->
+    <!--              -->
+    {% block events %}{% endblock events %}
+        
+
+
+
+
+    <!--        -->
+    <!-- Footer -->
+    <!--        -->
+    <footer class="bg-gradient-to-r from-orange-950 to-slate-800 text-white py-24">
+        <div class="container mx-auto flex flex-col items-center justify-center space-y-4">
+            <!-- Logo/Icon -->
+            <div class="text-4xl">
+                <img class="h-24 mr-2" src="{% static 'images/renova_logo.png' %}" alt="">
+            </div>
+
+            <!-- Company Info -->
+            <div class="text-center">
+            <h2 class="font-bold text-lg">RENOVA </h2>
+            <p class="text-sm font-medium">Providing Event Management Service since 1992</p>
+            </div>
+
+            <!-- Copyright -->
+            <div class="text-sm text-gray-100">
+            &copy; 2025 - All rights reserved
+            </div>
+
+            <!-- Social Media Icons -->
+            <div class="flex space-x-6 text-2xl">
+            <a href="#" class="hover:text-gray-300 transition"><i class="fa-brands fa-facebook"></i></a>
+            <a href="#" class="hover:text-gray-300 transition"><i class="fab fa-youtube"></i></a>
+            <a href="#" class="hover:text-gray-300 transition"><i class="fa-brands fa-linkedin"></i></a>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

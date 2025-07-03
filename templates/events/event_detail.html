@@ -1,0 +1,16 @@
+{% extends "index.html" %}
+
+{% block events %}
+<div class="min-h-screen pt-24 bg-gray-50">
+    <div class="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-md">
+        <h2 class="text-2xl font-bold mb-4">{{ event.name }}</h2>
+        <p><strong>Date:</strong> {{ event.date }}</p>
+        <p><strong>Time:</strong> {{ event.time }}</p>
+        <p><strong>Location:</strong> {{ event.location }}</p>
+        <p><strong>Category:</strong> {{ event.category.get_name_display }}</p>
+        <p class="mt-4"><strong>Description:</strong></p>
+        <p class="text-gray-700">{{ event.description }}</p>
+        <a href="{% url 'all_events' %}" class="inline-block mt-6 text-primary hover:underline">← Back to All Events</a>
+    </div>
+</div>
+{% endblock %}
