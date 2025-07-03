@@ -2,97 +2,106 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Home</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Home</title>
 
-    <script src="https://kit.fontawesome.com/d6d0eff34a.js" crossorigin="anonymous"></script>
-    <link rel="icon" type="image/png" href="{% static 'images/favicon.png' %}">
-    <link rel="stylesheet" href="{% static 'css/output.css' %}">
-    <link rel="stylesheet" href="{% static 'css/main.css' %}">
-    <style>
-        @keyframes fade-in-out {
-            0% { opacity: 0; transform: translateY(-10px); }
-            10% { opacity: 1; transform: translateY(0); }
-            90% { opacity: 1; }
-            100% { opacity: 0; transform: translateY(-10px); }
-        }
-        .animate-fade-in-out {
-            animation: fade-in-out 4s ease-in-out forwards;
-        }
-    </style>
+  <script src="https://kit.fontawesome.com/d6d0eff34a.js" crossorigin="anonymous"></script>
+  <link rel="icon" type="image/png" href="{% static 'images/favicon.png' %}">
+  <link rel="stylesheet" href="{% static 'css/output.css' %}">
+  <link rel="stylesheet" href="{% static 'css/main.css' %}">
+  <style>
+    @keyframes fade-in-out {
+      0% { opacity: 0; transform: translateY(-10px); }
+      10% { opacity: 1; transform: translateY(0); }
+      90% { opacity: 1; }
+      100% { opacity: 0; transform: translateY(-10px); }
+    }
+    .animate-fade-in-out {
+      animation: fade-in-out 4s ease-in-out forwards;
+    }
+
+    /* Checkbox hack for nav menu toggle */
+    #nav-toggle:checked ~ #nav-menu {
+      display: block;
+    }
+
+    /* Hide checkbox input */
+    #nav-toggle {
+      display: none;
+    }
+  </style>
 </head>
 <body class="font-sans">
 
-    <!--        -->
-    <!-- Header -->
-    <!--        -->
-    <nav class="absolute top-0 left-0 w-full flex items-center justify-between px-10 py-6 bg-black/30 backdrop-blur-sm text-white z-10">
-        <!-- Logo or Site Name -->
-        <div class="text-2xl font-bold tracking-wide flex items-center justify-center">
-            <img class="h-12 mr-2" src="{% static 'images/renova_logo.png' %}" alt="">
-            Renova
-        </div>
+  <!-- Navbar -->
+  <nav class="fixed top-0 left-0 w-full bg-black/20 backdrop-blur-sm text-white z-50">
+    <div class="container mx-auto flex flex-wrap items-center justify-between px-4 py-4 md:py-6">
 
+      <!-- Logo -->
+      <div class="flex items-center space-x-2">
+        <img class="h-10 md:h-12" src="{% static 'images/renova_logo.png' %}" alt="Renova Logo" />
+        <span class="text-xl md:text-2xl font-bold tracking-wide">Renova</span>
+      </div>
 
-        <!-- Navigation Links -->
-        <div class="space-x-6 text-lg">
-            <a href="{% url 'home' %}" class="hover:text-primary transition">Home</a>
-            <a href="{% url 'all_events' %}" class="hover:text-primary transition">All Events</a>
-            <a href="{% url 'add_event' %}" class="hover:text-primary transition">Add Event</a>
-            <a href="{% url 'dashboard' %}" class="hover:text-primary transition">Dashboard</a>
-        </div>
+      <!-- Hamburger for mobile -->
+      <label for="nav-toggle" class="cursor-pointer md:hidden block">
+        <svg class="w-8 h-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
+        </svg>
+      </label>
+      <input type="checkbox" id="nav-toggle" />
 
-        <!-- Login/Register -->
+      <!-- Nav menu -->
+      <div id="nav-menu" class="hidden w-full md:flex md:items-center md:w-auto space-y-4 md:space-y-0 md:space-x-6 text-lg">
+        <a href="{% url 'home' %}" class="block md:inline hover:text-primary transition">Home</a>
+        <a href="{% url 'all_events' %}" class="block md:inline hover:text-primary transition">All Events</a>
+        <a href="{% url 'add_event' %}" class="block md:inline hover:text-primary transition">Add Event</a>
+        <a href="{% url 'dashboard' %}" class="block md:inline hover:text-primary transition">Dashboard</a>
+
+        <!-- Login button shown inside menu on mobile -->
+        <a href="#" class="md:hidden block bg-primary text-white font-medium px-6 py-2 rounded hover:bg-orange-300 transition w-fit">
+          LOGIN
+        </a>
+      </div>
+
+      <!-- Login button for desktop -->
+      <div class="hidden md:block">
+        <a href="#" class="bg-primary text-white font-medium px-6 py-2 rounded hover:bg-orange-300 transition w-fit">
+          <button class="text-xs">LOGIN</button>
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Dynamic content -->
+  {% block events %}{% endblock events %}
+
+  <!-- Footer -->
+  <footer class="bg-gradient-to-r from-orange-950 to-slate-800 text-white py-16 px-4 md:px-0">
+    <div class="container mx-auto flex flex-col md:flex-row items-center justify-between space-y-6 md:space-y-0">
+      <!-- Logo -->
+      <div class="flex items-center space-x-4">
+        <img class="h-16 md:h-24" src="{% static 'images/renova_logo.png' %}" alt="Renova Logo" />
         <div>
-            <a href="#" class="bg-primary text-white font-medium px-6 py-3 rounded hover:bg-orange-300 transition">
-                LOGIN
-            </a>
+          <h2 class="font-bold text-lg md:text-xl">RENOVA</h2>
+          <p class="text-sm md:text-base font-medium">Providing Event Management Service since 1992</p>
         </div>
-    </nav>
+      </div>
 
-    
+      <!-- Copyright -->
+      <div class="text-sm text-gray-200 text-center md:text-left">
+        &copy; 2025 - All rights reserved
+      </div>
 
+      <!-- Social Icons -->
+      <div class="flex space-x-6 text-2xl">
+        <a href="#" class="hover:text-gray-300 transition"><i class="fa-brands fa-facebook"></i></a>
+        <a href="#" class="hover:text-gray-300 transition"><i class="fab fa-youtube"></i></a>
+        <a href="#" class="hover:text-gray-300 transition"><i class="fa-brands fa-linkedin"></i></a>
+      </div>
+    </div>
+  </footer>
 
-
-
-    <!--              -->
-    <!-- Dynamic View -->
-    <!--              -->
-    {% block events %}{% endblock events %}
-        
-
-
-
-
-    <!--        -->
-    <!-- Footer -->
-    <!--        -->
-    <footer class="bg-gradient-to-r from-orange-950 to-slate-800 text-white py-24">
-        <div class="container mx-auto flex flex-col items-center justify-center space-y-4">
-            <!-- Logo/Icon -->
-            <div class="text-4xl">
-                <img class="h-24 mr-2" src="{% static 'images/renova_logo.png' %}" alt="">
-            </div>
-
-            <!-- Company Info -->
-            <div class="text-center">
-            <h2 class="font-bold text-lg">RENOVA </h2>
-            <p class="text-sm font-medium">Providing Event Management Service since 1992</p>
-            </div>
-
-            <!-- Copyright -->
-            <div class="text-sm text-gray-100">
-            &copy; 2025 - All rights reserved
-            </div>
-
-            <!-- Social Media Icons -->
-            <div class="flex space-x-6 text-2xl">
-            <a href="#" class="hover:text-gray-300 transition"><i class="fa-brands fa-facebook"></i></a>
-            <a href="#" class="hover:text-gray-300 transition"><i class="fab fa-youtube"></i></a>
-            <a href="#" class="hover:text-gray-300 transition"><i class="fa-brands fa-linkedin"></i></a>
-            </div>
-        </div>
-    </footer>
 </body>
 </html>
