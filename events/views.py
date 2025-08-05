@@ -6,6 +6,7 @@ from .models import Event, Participant, Category
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from datetime import date
+from django.contrib import messages
 
 # - - - - - - - - #
 #    Index View   #

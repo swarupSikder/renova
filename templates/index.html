@@ -20,16 +20,8 @@
     .animate-fade-in-out {
       animation: fade-in-out 4s ease-in-out forwards;
     }
-
-    /* Checkbox hack for nav menu toggle */
-    #nav-toggle:checked ~ #nav-menu {
-      display: block;
-    }
-
-    /* Hide checkbox input */
-    #nav-toggle {
-      display: none;
-    }
+    #nav-toggle:checked ~ #nav-menu { display: block; }
+    #nav-toggle { display: none; }
   </style>
 </head>
 <body class="font-sans">
@@ -44,7 +36,7 @@
         <span class="text-xl md:text-2xl font-bold tracking-wide">Renova</span>
       </div>
 
-      <!-- Hamburger for mobile -->
+      <!-- Hamburger -->
       <label for="nav-toggle" class="cursor-pointer md:hidden block">
         <svg class="w-8 h-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16" />
@@ -52,35 +44,51 @@
       </label>
       <input type="checkbox" id="nav-toggle" />
 
-      <!-- Nav menu -->
+      <!-- Menu -->
       <div id="nav-menu" class="hidden w-full md:flex md:items-center md:w-auto space-y-4 md:space-y-0 md:space-x-6 text-lg">
         <a href="{% url 'home' %}" class="block md:inline hover:text-primary transition">Home</a>
         <a href="{% url 'all_events' %}" class="block md:inline hover:text-primary transition">All Events</a>
         <a href="{% url 'add_event' %}" class="block md:inline hover:text-primary transition">Add Event</a>
         <a href="{% url 'dashboard' %}" class="block md:inline hover:text-primary transition">Dashboard</a>
 
-        <!-- Login button shown inside menu on mobile -->
-        <a href="#" class="md:hidden block bg-primary text-white font-medium px-6 py-2 rounded hover:bg-orange-300 transition w-fit">
-          LOGIN
-        </a>
+        {% if request.user.is_authenticated %}
+          <a href="{% url 'logout' %}" class="md:hidden block bg-red-500 text-white font-medium px-6 py-2 rounded hover:bg-red-600 transition w-fit">Logout</a>
+        {% else %}
+          <a href="{% url 'login' %}" class="md:hidden block bg-primary text-white font-medium px-6 py-2 rounded hover:bg-orange-300 transition w-fit">Login</a>
+        {% endif %}
       </div>
 
-      <!-- Login button for desktop -->
+      <!-- Desktop Login/Logout -->
       <div class="hidden md:block">
-        <a href="#" class="bg-primary text-white font-medium px-6 py-2 rounded hover:bg-orange-300 transition w-fit">
-          <button class="text-xs">LOGIN</button>
-        </a>
+        {% if request.user.is_authenticated %}
+          <span class="text-sm mr-2">Hello, {{ request.user.first_name }}</span>
+          <a href="{% url 'logout' %}" class="bg-red-500 px-4 py-2 text-white rounded hover:bg-red-600 transition">Logout</a>
+        {% else %}
+          <a href="{% url 'login' %}" class="bg-primary px-4 py-2 text-white rounded hover:bg-orange-300 transition">Login</a>
+        {% endif %}
       </div>
     </div>
   </nav>
 
-  <!-- Dynamic content -->
-  {% block events %}{% endblock events %}
+  <!-- Flash messages -->
+  {% if messages %}
+    <div class="mt-20 container mx-auto px-4">
+      {% for message in messages %}
+        <div class="mb-4 px-4 py-3 rounded bg-yellow-100 text-yellow-800 border border-yellow-300 shadow">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Page Content -->
+  <main class="pt-0 md:pt-24">
+    {% block events %}{% endblock %}
+  </main>
 
   <!-- Footer -->
-  <footer class="bg-gradient-to-r from-orange-950 to-slate-800 text-white py-16 px-4 md:px-0">
+  <footer class="bg-gradient-to-r from-orange-950 to-slate-800 text-white py-16 px-4 md:px-0 mt-0">
     <div class="container mx-auto flex flex-col md:flex-row items-center justify-between space-y-6 md:space-y-0">
-      <!-- Logo -->
       <div class="flex items-center space-x-4">
         <img class="h-16 md:h-24" src="{% static 'images/renova_logo.png' %}" alt="Renova Logo" />
         <div>
@@ -88,13 +96,9 @@
           <p class="text-sm md:text-base font-medium">Providing Event Management Service since 1992</p>
         </div>
       </div>
-
-      <!-- Copyright -->
       <div class="text-sm text-gray-200 text-center md:text-left">
         &copy; 2025 - All rights reserved
       </div>
-
-      <!-- Social Icons -->
       <div class="flex space-x-6 text-2xl">
         <a href="#" class="hover:text-gray-300 transition"><i class="fa-brands fa-facebook"></i></a>
         <a href="#" class="hover:text-gray-300 transition"><i class="fab fa-youtube"></i></a>
