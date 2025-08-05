@@ -99,8 +99,8 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
     'default': dj_database_url.config(
-        default='postgresql://renova_db_2u1o_user:Drfvm9hrbMu1XaqGR0NduAvZXEfjdfDU@dpg-d1j47h7diees73ck8hag-a.oregon-postgres.render.com/renova_db_2u1o',
-        conn_max_age=600,
+        default='postgresql://renova_db_abrm_user:NhdJPe5MINE1OxtbbImzBPTJjIRQD0Sf@dpg-d290lj8gjchc73c7k00g-a.oregon-postgres.render.com/renova_db_abrm',
+        conn_max_age=600
     )
 }
 
