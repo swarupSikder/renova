@@ -24,7 +24,7 @@
     #nav-toggle { display: none; }
   </style>
 </head>
-<body class="font-sans">
+<body class="font-sans bg-slate-200">
 
   <!-- Navbar -->
   <nav class="fixed top-0 left-0 w-full bg-black/20 backdrop-blur-sm text-white z-50">
@@ -69,17 +69,6 @@
       </div>
     </div>
   </nav>
-
-  <!-- Flash messages -->
-  {% if messages %}
-    <div class="mt-20 container mx-auto px-4">
-      {% for message in messages %}
-        <div class="mb-4 px-4 py-3 rounded bg-yellow-100 text-yellow-800 border border-yellow-300 shadow">
-          {{ message }}
-        </div>
-      {% endfor %}
-    </div>
-  {% endif %}
 
   <!-- Page Content -->
   <main class="pt-0 md:pt-24">

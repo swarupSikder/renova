@@ -13,7 +13,7 @@ def signup_view(request):
             user = form.save()
             login(request, user)  # Auto-login after signup
             messages.success(request, "Account created successfully! Welcome 🎉")
-            return redirect('home')
+            return redirect('dashboard')
         else:
             messages.error(request, "Please correct the errors below.")
     else:
