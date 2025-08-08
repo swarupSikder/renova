@@ -10,6 +10,17 @@
 </head>
 <body class="bg-gradient-to-tr from-orange-100 via-white to-slate-100 font-sans min-h-screen relative">
 
+  <!-- Success messages -->
+    {% if messages %}
+      <div class="fixed top-4 right-4 z-50 space-y-2">
+        {% for message in messages %}
+          <div class="bg-green-500 text-white px-6 py-3 rounded shadow-md animate-fade-in-out">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
   <!-- 🔙 Back to Home Button -->
   <div class="absolute top-4 left-4 z-10">
     <a href="{% url 'home' %}" class="flex items-center text-orange-600 hover:text-orange-800 transition text-sm md:text-base">

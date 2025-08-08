@@ -54,6 +54,3 @@ class Participant(models.Model):
 
     def __str__(self):
         return f"Participant: {self.name}, Email: {self.email}"
-    
-
-

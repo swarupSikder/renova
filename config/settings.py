@@ -13,6 +13,7 @@ import dj_database_url
 from pathlib import Path
 from django.contrib.messages import constants as messages
 import os
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -22,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-r!w6-3$=c8o4^se3)6+r62j#zv83qfdson+wq2pd-tr5-s42zr'
+SECRET_KEY = config('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -100,7 +101,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
     'default': dj_database_url.config(
-        default='postgresql://renova_db_abrm_user:NhdJPe5MINE1OxtbbImzBPTJjIRQD0Sf@dpg-d290lj8gjchc73c7k00g-a.oregon-postgres.render.com/renova_db_abrm',
+        default= config('DB_LINK'),
         conn_max_age=600
     )
 }
@@ -150,6 +151,20 @@ STATICFILES_DIRS = [
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+
+
+EMAIL_BACKEND = config('EMAIL_BACKEND')
+EMAIL_HOST = config('EMAIL_HOST')
+EMAIL_USE_TLS = config('EMAIL_USE_TLS')
+EMAIL_PORT = config('EMAIL_PORT')
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
+
+
+FRONTEND_URL='http://127.0.0.1:8000'
+
 
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
