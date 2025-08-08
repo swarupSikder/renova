@@ -2,15 +2,40 @@
 
 {% block events %}
 <div class="min-h-screen pt-24 bg-gray-50">
-    <div class="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-md">
-        <h2 class="text-2xl font-bold mb-4">{{ event.name }}</h2>
-        <p><strong>Date:</strong> {{ event.date }}</p>
-        <p><strong>Time:</strong> {{ event.time }}</p>
-        <p><strong>Location:</strong> {{ event.location }}</p>
-        <p><strong>Category:</strong> {{ event.category.get_name_display }}</p>
-        <p class="mt-4"><strong>Description:</strong></p>
-        <p class="text-gray-700">{{ event.description }}</p>
-        <a href="{% url 'all_events' %}" class="inline-block mt-6 text-primary hover:underline">← Back to All Events</a>
+  <div class="max-w-3xl mx-auto bg-white p-8 rounded-lg shadow-lg border border-gray-200">
+    <h2 class="text-3xl font-extrabold mb-4 text-gray-900">{{ event.name }}</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-gray-700 text-sm font-medium mb-6">
+      <div><span class="font-semibold">Date:</span> {{ event.date }}</div>
+      <div><span class="font-semibold">Time:</span> {{ event.time }}</div>
+      <div><span class="font-semibold">Location:</span> {{ event.location }}</div>
+      <div><span class="font-semibold">Category:</span> {{ event.category.get_name_display }}</div>
     </div>
+
+    <div>
+      <h3 class="font-semibold text-gray-800 mb-2">Description:</h3>
+      <p class="text-gray-600 leading-relaxed whitespace-pre-line">{{ event.description }}</p>
+    </div>
+
+    <a href="{% url 'all_events' %}" class="inline-block mt-6 text-orange-600 font-semibold hover:underline">← Back to All Events</a>
+
+    <div class="mt-8">
+      {% if user.is_authenticated %}
+      <form method="post" action="{% url 'rsvp_event' event.id %}">
+        {% csrf_token %}
+        <button 
+          type="submit" 
+          class="bg-orange-500 text-white px-6 py-2 rounded-lg shadow hover:bg-orange-600 transition duration-200"
+        >
+          RSVP to this Event
+        </button>
+      </form>
+      {% else %}
+      <p class="mt-4 text-gray-600">
+        <a href="{% url 'login' %}" class="text-orange-500 font-semibold hover:underline">Log in</a> to RSVP.
+      </p>
+      {% endif %}
+    </div>
+  </div>
 </div>
 {% endblock %}

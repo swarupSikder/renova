@@ -1,0 +1,83 @@
+{% extends "index.html" %}
+{% block events %}
+<div class="min-h-screen p-8 bg-gray-50">
+  <h1 class="text-4xl font-bold mb-6 text-sky-600">Admin Dashboard</h1>
+
+  <!-- Events Section -->
+  <section class="mb-10">
+    <h2 class="text-2xl font-semibold mb-4">Events ({{ events.count }})</h2>
+    <table class="w-full table-auto border-collapse border border-gray-300">
+      <thead>
+        <tr class="bg-sky-100">
+          <th class="border border-gray-300 px-4 py-2">Name</th>
+          <th class="border border-gray-300 px-4 py-2">Date</th>
+          <th class="border border-gray-300 px-4 py-2">Location</th>
+          <th class="border border-gray-300 px-4 py-2">Category</th>
+          <th class="border border-gray-300 px-4 py-2">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for event in events %}
+        <tr class="odd:bg-white even:bg-gray-100">
+          <td class="border border-gray-300 px-4 py-2">{{ event.name }}</td>
+          <td class="border border-gray-300 px-4 py-2">{{ event.date }}</td>
+          <td class="border border-gray-300 px-4 py-2">{{ event.location }}</td>
+          <td class="border border-gray-300 px-4 py-2">{{ event.category.name }}</td>
+          <td class="border border-gray-300 px-4 py-2 space-x-2">
+            <a href="{% url 'event_detail' event.id %}" class="text-blue-600 hover:underline">View</a>
+            <a href="{% url 'edit_event' event.id %}" class="text-green-600 hover:underline">Edit</a>
+            <a href="{% url 'delete_event' event.id %}" class="text-red-600 hover:underline">Delete</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" class="text-center py-4">No events found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Participants Section -->
+  <section class="mb-10">
+    <h2 class="text-2xl font-semibold mb-4">Participants ({{ participants.count }})</h2>
+    <table class="w-full table-auto border-collapse border border-gray-300">
+      <thead>
+        <tr class="bg-orange-100">
+          <th class="border border-gray-300 px-4 py-2">Username</th>
+          <th class="border border-gray-300 px-4 py-2">Email</th>
+          <th class="border border-gray-300 px-4 py-2">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for user in participants %}
+        <tr class="odd:bg-white even:bg-gray-100">
+          <td class="border border-gray-300 px-4 py-2">{{ user.username }}</td>
+          <td class="border border-gray-300 px-4 py-2">{{ user.email }}</td>
+          <td class="border border-gray-300 px-4 py-2 space-x-2">
+            <!-- Add actions like delete user or change roles here -->
+            <a href="#" class="text-red-600 hover:underline">Delete</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="3" class="text-center py-4">No participants found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Categories Section -->
+  <section>
+    <h2 class="text-2xl font-semibold mb-4">Categories ({{ categories.count }})</h2>
+    <ul class="list-disc pl-6">
+      {% for category in categories %}
+        <li class="mb-1">{{ category.name }} - {{ category.description|default:"No description" }}</li>
+      {% empty %}
+        <li>No categories found.</li>
+      {% endfor %}
+    </ul>
+  </section>
+</div>
+{% endblock %}

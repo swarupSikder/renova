@@ -1,0 +1,38 @@
+{% extends "index.html" %}
+{% block events %}
+<div class="container mx-auto p-4">
+    <h1 class="text-3xl font-bold mb-6 text-green-600">Participant Dashboard</h1>
+
+    <section>
+        <h2 class="text-xl font-semibold mb-4">Events You Have RSVP'd To</h2>
+        {% if rsvp_events %}
+            <table class="min-w-full border border-gray-300">
+                <thead>
+                    <tr class="bg-green-100">
+                        <th class="border px-4 py-2">Name</th>
+                        <th class="border px-4 py-2">Date</th>
+                        <th class="border px-4 py-2">Category</th>
+                        <th class="border px-4 py-2">Location</th>
+                        <th class="border px-4 py-2">Details</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for event in rsvp_events %}
+                    <tr class="hover:bg-green-50">
+                        <td class="border px-4 py-2">{{ event.name }}</td>
+                        <td class="border px-4 py-2">{{ event.date }}</td>
+                        <td class="border px-4 py-2">{{ event.category }}</td>
+                        <td class="border px-4 py-2">{{ event.location }}</td>
+                        <td class="border px-4 py-2">
+                            <a href="{% url 'event_detail' event.id %}" class="text-green-700 hover:underline">View</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>You have not RSVP'd to any events yet. Visit <a href="{% url 'all_events' %}" class="text-green-600 hover:underline">All Events</a> to RSVP.</p>
+        {% endif %}
+    </section>
+</div>
+{% endblock %}
