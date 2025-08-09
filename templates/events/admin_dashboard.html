@@ -1,83 +1,95 @@
-{% extends "index.html" %}
-{% block events %}
-<div class="min-h-screen p-8 bg-gray-50">
-  <h1 class="text-4xl font-bold mb-6 text-sky-600">Admin Dashboard</h1>
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>{% block title %}Admin Dashboard{% endblock %}</title>
+  <script src="https://kit.fontawesome.com/d6d0eff34a.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="{% static 'css/output.css' %}">
+  <link rel="stylesheet" href="{% static 'css/main.css' %}">
+  <style>
+    /* Simple sidebar styling */
+    body { margin: 0; font-family: Arial, sans-serif; }
+    .sidebar {
+      width: 220px; 
+      background: #2c3e50; 
+      height: 100vh; 
+      position: fixed; 
+      top: 0; 
+      left: 0; 
+      padding-top: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .sidebar .logo {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .sidebar .logo img {
+      max-width: 140px;
+      height: auto;
+    }
+    .sidebar nav a {
+      display: block; 
+      color: white; 
+      padding: 12px 20px; 
+      text-decoration: none;
+      font-weight: 500;
+      transition: background 0.3s;
+    }
+    .sidebar nav a:hover {
+      background: #34495e;
+    }
+    .sidebar .bottom-link {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    .sidebar .bottom-link a {
+      color: #ecf0f1;
+      font-weight: bold;
+      text-decoration: none;
+      padding: 10px 20px;
+      display: inline-block;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      transition: background 0.3s, border-color 0.3s;
+    }
+    .sidebar .bottom-link a:hover {
+      background: #34495e;
+      border-color: #ecf0f1;
+    }
+    .content {
+      margin-left: 220px; 
+      padding: 20px;
+      min-height: 100vh;
+      background: #f9fafb;
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <div>
+      <div class="logo">
+        <img src="{% static 'images/favicon.png' %}" alt="Site Logo" />
+      </div>
 
-  <!-- Events Section -->
-  <section class="mb-10">
-    <h2 class="text-2xl font-semibold mb-4">Events ({{ events.count }})</h2>
-    <table class="w-full table-auto border-collapse border border-gray-300">
-      <thead>
-        <tr class="bg-sky-100">
-          <th class="border border-gray-300 px-4 py-2">Name</th>
-          <th class="border border-gray-300 px-4 py-2">Date</th>
-          <th class="border border-gray-300 px-4 py-2">Location</th>
-          <th class="border border-gray-300 px-4 py-2">Category</th>
-          <th class="border border-gray-300 px-4 py-2">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for event in events %}
-        <tr class="odd:bg-white even:bg-gray-100">
-          <td class="border border-gray-300 px-4 py-2">{{ event.name }}</td>
-          <td class="border border-gray-300 px-4 py-2">{{ event.date }}</td>
-          <td class="border border-gray-300 px-4 py-2">{{ event.location }}</td>
-          <td class="border border-gray-300 px-4 py-2">{{ event.category.name }}</td>
-          <td class="border border-gray-300 px-4 py-2 space-x-2">
-            <a href="{% url 'event_detail' event.id %}" class="text-blue-600 hover:underline">View</a>
-            <a href="{% url 'edit_event' event.id %}" class="text-green-600 hover:underline">Edit</a>
-            <a href="{% url 'delete_event' event.id %}" class="text-red-600 hover:underline">Delete</a>
-          </td>
-        </tr>
-        {% empty %}
-        <tr>
-          <td colspan="5" class="text-center py-4">No events found.</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </section>
+      <div>
+        <h2 class="text-xl text-primary px-3">Admin Dashboard</h2>
+        <div class="h-[2px] bg-orange-100 mt-2 mb-6"></div>
+      </div>
 
-  <!-- Participants Section -->
-  <section class="mb-10">
-    <h2 class="text-2xl font-semibold mb-4">Participants ({{ participants.count }})</h2>
-    <table class="w-full table-auto border-collapse border border-gray-300">
-      <thead>
-        <tr class="bg-orange-100">
-          <th class="border border-gray-300 px-4 py-2">Username</th>
-          <th class="border border-gray-300 px-4 py-2">Email</th>
-          <th class="border border-gray-300 px-4 py-2">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for user in participants %}
-        <tr class="odd:bg-white even:bg-gray-100">
-          <td class="border border-gray-300 px-4 py-2">{{ user.username }}</td>
-          <td class="border border-gray-300 px-4 py-2">{{ user.email }}</td>
-          <td class="border border-gray-300 px-4 py-2 space-x-2">
-            <!-- Add actions like delete user or change roles here -->
-            <a href="#" class="text-red-600 hover:underline">Delete</a>
-          </td>
-        </tr>
-        {% empty %}
-        <tr>
-          <td colspan="3" class="text-center py-4">No participants found.</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </section>
+      <nav>
+        <a href="{% url 'users_control' %}">Users</a>
+      </nav>
+    </div>
+    <div class="bottom-link">
+      <a href="{% url 'home' %}"><i class="fas fa-home mr-2"></i>Back to Home</a>
+    </div>
+  </div>
 
-  <!-- Categories Section -->
-  <section>
-    <h2 class="text-2xl font-semibold mb-4">Categories ({{ categories.count }})</h2>
-    <ul class="list-disc pl-6">
-      {% for category in categories %}
-        <li class="mb-1">{{ category.name }} - {{ category.description|default:"No description" }}</li>
-      {% empty %}
-        <li>No categories found.</li>
-      {% endfor %}
-    </ul>
-  </section>
-</div>
-{% endblock %}
+  <div class="content">
+    {% block content %}{% endblock %}
+  </div>
+</body>
+</html>

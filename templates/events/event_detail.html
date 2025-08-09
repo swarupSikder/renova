@@ -1,41 +1,101 @@
 {% extends "index.html" %}
+{% load static %}
 
 {% block events %}
-<div class="min-h-screen pt-24 bg-gray-50">
+<div class="min-h-screen pt-16 bg-gray-50">
   <div class="max-w-3xl mx-auto bg-white p-8 rounded-lg shadow-lg border border-gray-200">
-    <h2 class="text-3xl font-extrabold mb-4 text-gray-900">{{ event.name }}</h2>
-    
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-gray-700 text-sm font-medium mb-6">
-      <div><span class="font-semibold">Date:</span> {{ event.date }}</div>
-      <div><span class="font-semibold">Time:</span> {{ event.time }}</div>
-      <div><span class="font-semibold">Location:</span> {{ event.location }}</div>
-      <div><span class="font-semibold">Category:</span> {{ event.category.get_name_display }}</div>
+
+    <!-- Event Image -->
+    {% if event.image %}
+      <img
+        src="{{ event.image.url }}"
+        alt="{{ event.name }}"
+        class="w-24 h-24 object-cover rounded-lg mb-6 mx-auto border border-gray-300 shadow-lg"
+      />
+    {% else %}
+      <img
+        src="{% static 'images/favicon.png' %}"
+        alt="Default Event Image"
+        class="w-48 h-48 object-cover rounded-full mb-6 mx-auto border border-gray-300 shadow-lg"
+      />
+    {% endif %}
+
+    <!-- Event Title -->
+    <h2 class="text-4xl font-extrabold mb-6 text-orange-600 text-center">{{ event.name }}</h2>
+
+    <!-- Event Details Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-gray-700 text-base font-semibold mb-8">
+      <div class="flex items-center space-x-2">
+        <i class="fas fa-calendar-day text-orange-500"></i>
+        <span><strong>Date:</strong> {{ event.date|date:"F j, Y" }}</span>
+      </div>
+      <div class="flex items-center space-x-2">
+        <i class="fas fa-clock text-orange-500"></i>
+        <span><strong>Time:</strong> {{ event.time|time:"g:i A" }}</span>
+      </div>
+      <div class="flex items-center space-x-2">
+        <i class="fas fa-map-marker-alt text-orange-500"></i>
+        <span><strong>Location:</strong> {{ event.location }}</span>
+      </div>
+      <div class="flex items-center space-x-2">
+        <i class="fas fa-tags text-orange-500"></i>
+        <span><strong>Category:</strong> {{ event.category.get_name_display }}</span>
+      </div>
     </div>
 
-    <div>
-      <h3 class="font-semibold text-gray-800 mb-2">Description:</h3>
-      <p class="text-gray-600 leading-relaxed whitespace-pre-line">{{ event.description }}</p>
+    <!-- Description -->
+    <div class="mb-8">
+      <h3 class="text-xl font-semibold text-gray-900 mb-3 border-b border-orange-200 pb-2">Description</h3>
+      <p class="text-gray-700 leading-relaxed whitespace-pre-line">{{ event.description }}</p>
     </div>
 
-    <a href="{% url 'all_events' %}" class="inline-block mt-6 text-orange-600 font-semibold hover:underline">← Back to All Events</a>
-
-    <div class="mt-8">
+    <!-- RSVP Button / Login Prompt -->
+    <div class="text-center">
       {% if user.is_authenticated %}
-      <form method="post" action="{% url 'rsvp_event' event.id %}">
-        {% csrf_token %}
-        <button 
-          type="submit" 
-          class="bg-orange-500 text-white px-6 py-2 rounded-lg shadow hover:bg-orange-600 transition duration-200"
-        >
-          RSVP to this Event
-        </button>
-      </form>
+        {% if user in event.rsvps.all %}
+          <button
+            class="bg-gray-400 text-white px-8 py-3 rounded-lg shadow cursor-not-allowed select-none"
+            disabled
+            title="You have already RSVP'd"
+          >
+            <i class="fas fa-check-circle mr-2"></i>Already Attended
+          </button>
+        {% else %}
+          <form method="post" action="{% url 'rsvp_event' event.id %}" class="inline-block">
+            {% csrf_token %}
+            <button
+              type="submit"
+              class="bg-orange-600 hover:bg-orange-700 text-white px-8 py-3 rounded-lg shadow transition duration-200 flex items-center justify-center mx-auto"
+            >
+              <i class="fas fa-calendar-check mr-2"></i>Attend
+            </button>
+          </form>
+        {% endif %}
       {% else %}
-      <p class="mt-4 text-gray-600">
-        <a href="{% url 'login' %}" class="text-orange-500 font-semibold hover:underline">Log in</a> to RSVP.
-      </p>
+        <p class="text-gray-600">
+          <a href="{% url 'login' %}" class="text-orange-600 font-semibold hover:underline">Log in</a> to RSVP.
+        </p>
       {% endif %}
     </div>
+
+    <!-- Back link -->
+    <div class="mt-16 text-center">
+      <a href="{% url 'all_events' %}" class="text-orange-600 font-semibold hover:underline inline-flex items-center justify-center">
+        <i class="fas fa-arrow-left mr-2"></i>Back to All Events
+      </a>
+    </div>
+
   </div>
+
+  <!-- Flash messages -->
+  {% if messages %}
+  <div class="fixed top-4 right-4 z-50 space-y-2">
+    {% for message in messages %}
+      <div class="bg-green-500 text-white px-6 py-3 rounded shadow-md animate-fade-in-out">
+        {{ message }}
+      </div>
+    {% endfor %}
+  </div>
+  {% endif %}
 </div>
 {% endblock %}

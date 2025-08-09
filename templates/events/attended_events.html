@@ -1,0 +1,26 @@
+{% extends "events/participant_dashboard.html" %}
+{% block title %}Attended Events{% endblock %}
+
+{% block content %}
+<div class="container mx-auto p-6 bg-white rounded-lg shadow-lg min-h-lvh">
+    <h1 class="text-2xl font-bold mb-6 text-orange-600">Attended Events</h1>
+
+    {% if events %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for event in events %}
+                <div class="bg-gray-100 rounded-lg p-4 shadow-md">
+                    <h2 class="text-xl font-semibold text-orange-700">{{ event.title }}</h2>
+                    <p class="text-gray-600">{{ event.date|date:"F j, Y" }}</p>
+                    <p class="mt-2 text-sm text-gray-500">{{ event.description|truncatewords:20 }}</p>
+                    <a href="{% url 'event_detail' event.id %}" 
+                       class="inline-block mt-3 text-white bg-orange-600 px-4 py-2 rounded hover:bg-orange-700">
+                        View Details
+                    </a>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-gray-500">You haven't attended any events yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

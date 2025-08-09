@@ -48,7 +48,6 @@
       <div id="nav-menu" class="hidden w-full md:flex md:items-center md:w-auto space-y-4 md:space-y-0 md:space-x-6 text-lg">
         <a href="{% url 'home' %}" class="block md:inline hover:text-primary transition">Home</a>
         <a href="{% url 'all_events' %}" class="block md:inline hover:text-primary transition">All Events</a>
-        <a href="{% url 'add_event' %}" class="block md:inline hover:text-primary transition">Add Event</a>
         <a href="{% url 'dashboard' %}" class="block md:inline hover:text-primary transition">Dashboard</a>
 
         {% if request.user.is_authenticated %}

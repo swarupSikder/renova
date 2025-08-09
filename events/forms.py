@@ -2,6 +2,7 @@ from django import forms
 from events.models import Event
 
 
+
 # - - - - - - - - - - - - - - - #
 #      Form Styling Mixin       #
 # - - - - - - - - - - - - - - - #
@@ -29,12 +30,16 @@ class StyledFormMixin:
                     'class': self.default_date_time_classes,
                     'type': 'date' if isinstance(widget, forms.DateInput) else 'time'
                 })
+            elif isinstance(widget, forms.ClearableFileInput):
+                # You can add styling here for file input if you want
+                widget.attrs.update({
+                    'class': 'block w-full text-sm text-gray-900 bg-gray-50 rounded border border-gray-300 cursor-pointer focus:outline-none focus:border-blue-500',
+                })
             else:
                 widget.attrs.update({
                     'class': self.default_input_classes,
                     'placeholder': f"Enter {field.label.lower()}",
                 })
-
 
 # - - - - - - - - - - - #
 #    Add Event Form     #
@@ -42,10 +47,11 @@ class StyledFormMixin:
 class EventModelForm(StyledFormMixin, forms.ModelForm):
     class Meta:
         model = Event
-        fields = ['name', 'description', 'date', 'time', 'location', 'category']
+        fields = ['name', 'description', 'date', 'time', 'location', 'category', 'image']
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date'}),
             'time': forms.TimeInput(attrs={'type': 'time'}),
+            'image': forms.ClearableFileInput(),
         }
 
     def __init__(self, *args, **kwargs):

@@ -40,6 +40,13 @@ class Event(models.Model):
     rsvps = models.ManyToManyField(User, related_name='rsvp_events', blank=True)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='created_events')
 
+    # New Image Field
+    image = models.ImageField(
+        upload_to='event_images/',
+        default='event_images/default.jpg'
+    )
+
+
     def __str__(self):
         return f"Event Name: {self.name}"
 
