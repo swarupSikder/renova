@@ -7,6 +7,10 @@ from django.contrib.auth.models import User, Group
 from django.core.mail import send_mail
 from django.conf import settings
 
+from django.views.generic import TemplateView, ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.urls import reverse_lazy
+
 from .forms import EventModelForm
 from .models import Event, Participant, Category
 
@@ -16,15 +20,10 @@ try:
 except Exception:
     OrganizerProfile = None
 
-
 # ----------------------------------------
 # Group-based access control decorator
 # ----------------------------------------
 def group_required(*group_names):
-    """
-    Decorator to restrict access to users in specific groups.
-    Superusers bypass group checks.
-    """
     def in_groups(u):
         if u.is_authenticated:
             if u.is_superuser:
@@ -34,10 +33,145 @@ def group_required(*group_names):
         return False
     return user_passes_test(in_groups)
 
+# ----------------------------------------
+# GroupRequiredMixin for CBVs
+# ----------------------------------------
+class GroupRequiredMixin(UserPassesTestMixin):
+    group_names = []
+
+    def test_func(self):
+        user = self.request.user
+        if user.is_superuser:
+            return True
+        return user.groups.filter(name__in=self.group_names).exists()
+
+    def handle_no_permission(self):
+        messages.error(self.request, "You do not have permission to access this page.")
+        return redirect('dashboard_redirect')
 
 # ----------------------------------------
-# Public Views
+# CBVs for requested views
 # ----------------------------------------
+
+class DashboardView(LoginRequiredMixin, TemplateView):
+    template_name = "events/dashboard.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        is_admin = user.is_superuser or user.groups.filter(name='Admin').exists()
+        is_organizer = user.groups.filter(name='Organizer').exists()
+        is_participant = not (is_admin or is_organizer)
+
+        context.update({
+            "user": user,
+            "is_admin": is_admin,
+            "is_organizer": is_organizer,
+            "is_participant": is_participant,
+            "can_add_event": is_admin or is_organizer,
+            "show_profile_edit": True,
+        })
+
+        if is_admin:
+            context["users"] = User.objects.all()
+            context["total_events"] = Event.objects.count()
+        elif is_organizer:
+            context["events"] = Event.objects.filter(created_by=user).order_by('-date')
+        else:
+            context["events"] = Event.objects.filter(rsvps=user).order_by('-date')
+
+        return context
+
+
+class AllEventsView(ListView):
+    model = Event
+    template_name = "events/all_events.html"
+    context_object_name = 'events'
+
+    def get_queryset(self):
+        queryset = super().get_queryset().select_related('category').prefetch_related('rsvps').order_by('-date')
+        search_query = self.request.GET.get('q', '')
+        category_id = self.request.GET.get('category')
+        start_date = self.request.GET.get('start_date')
+        end_date = self.request.GET.get('end_date')
+
+        filters = Q()
+        if search_query:
+            filters &= Q(name__icontains=search_query) | Q(location__icontains=search_query)
+        if category_id:
+            filters &= Q(category__id=category_id)
+        if start_date and end_date:
+            filters &= Q(date__range=[start_date, end_date])
+
+        return queryset.filter(filters)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context.update({
+            'query': self.request.GET.get('q', ''),
+            'categories': Category.objects.all(),
+            'total_participants': Participant.objects.count(),
+            'selected_category': self.request.GET.get('category'),
+            'start_date': self.request.GET.get('start_date'),
+            'end_date': self.request.GET.get('end_date'),
+        })
+        return context
+
+
+class EventDetailView(DetailView):
+    model = Event
+    template_name = "events/event_detail.html"
+    context_object_name = "event"
+    pk_url_kwarg = 'event_id'
+
+
+class AddEventView(LoginRequiredMixin, GroupRequiredMixin, CreateView):
+    model = Event
+    form_class = EventModelForm
+    template_name = "events/add_event.html"
+    success_url = reverse_lazy('dashboard_redirect')
+    group_names = ['Organizer', 'Admin']
+
+    def form_valid(self, form):
+        event = form.save(commit=False)
+        event.created_by = self.request.user
+        event.save()
+        messages.success(self.request, "Event created successfully!")
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        messages.error(self.request, "Please correct the errors in the form.")
+        return super().form_invalid(form)
+
+
+class EditEventView(LoginRequiredMixin, GroupRequiredMixin, UpdateView):
+    model = Event
+    form_class = EventModelForm
+    template_name = "events/edit_event.html"
+    success_url = reverse_lazy('dashboard_redirect')
+    pk_url_kwarg = 'event_id'
+    group_names = ['Organizer', 'Admin']
+
+    def dispatch(self, request, *args, **kwargs):
+        if request.user.groups.filter(name='Organizer').exists():
+            event = self.get_object()
+            if hasattr(event, 'created_by') and event.created_by != request.user:
+                messages.error(request, "You are not allowed to edit this event.")
+                return redirect('dashboard_redirect')
+        return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        messages.success(self.request, "Event updated successfully!")
+        return super().form_valid(form)
+
+    def form_invalid(self, form):
+        messages.error(self.request, "Please correct the errors in the form.")
+        return super().form_invalid(form)
+
+# ----------------------------------------
+# FBVs for the rest (keep same)
+# ----------------------------------------
+
 def index(request):
     return render(request, "events/home.html")
 
@@ -46,145 +180,9 @@ def home(request):
     return render(request, "events/home.html")
 
 
-def all_events(request):
-    """
-    Show all events with optional filtering.
-    """
-    search_query = request.GET.get('q', '')
-    category_id = request.GET.get('category')
-    start_date = request.GET.get('start_date')
-    end_date = request.GET.get('end_date')
-
-    filters = Q()
-    if search_query:
-        filters &= Q(name__icontains=search_query) | Q(location__icontains=search_query)
-    if category_id:
-        filters &= Q(category__id=category_id)
-    if start_date and end_date:
-        filters &= Q(date__range=[start_date, end_date])
-
-    events = (
-        Event.objects
-        .filter(filters)
-        .select_related('category')
-        .prefetch_related('rsvps')
-        .order_by('-date')
-    )
-
-    total_participants = Participant.objects.count()
-
-    context = {
-        'events': events,
-        'query': search_query,
-        'categories': Category.objects.all(),
-        'total_participants': total_participants,
-        'selected_category': category_id,
-        'start_date': start_date,
-        'end_date': end_date,
-    }
-    return render(request, "events/all_events.html", context)
-
-
-def event_detail(request, event_id):
-    """
-    Show details of a single event.
-    """
-    event = get_object_or_404(Event, pk=event_id)
-    return render(request, "events/event_detail.html", {"event": event})
-
-
-# ----------------------------------------
-# Unified Dashboard View rendering profile edit by default
-# ----------------------------------------
-@login_required
-def dashboard_view(request):
-    user = request.user
-    is_admin = user.is_superuser or user.groups.filter(name='Admin').exists()
-    is_organizer = user.groups.filter(name='Organizer').exists()
-    is_participant = not (is_admin or is_organizer)
-
-    context = {
-        "user": user,
-        "is_admin": is_admin,
-        "is_organizer": is_organizer,
-        "is_participant": is_participant,
-        "can_add_event": is_admin or is_organizer,
-    }
-
-    # Add role-specific data
-    if is_admin:
-        context["users"] = User.objects.all()
-        context["total_events"] = Event.objects.count()
-    elif is_organizer:
-        context["events"] = Event.objects.filter(created_by=user).order_by('-date')
-    else:
-        context["events"] = Event.objects.filter(rsvps=user).order_by('-date')
-
-    # Pass a flag to indicate showing profile edit section by default
-    context["show_profile_edit"] = True
-
-    return render(request, "events/dashboard.html", context)
-
-
-
-
-
-
-# ----------------------------------------
-# Redirect to dashboard_view or profile edit
-# ----------------------------------------
 @login_required
 def redirect_dashboard(request):
-    """
-    Redirect /dashboard/ to profile edit page.
-    """
-    # Redirect directly to profile edit page
     return redirect('edit_profile')
-
-
-# ----------------------------------------
-# Event CRUD
-# ----------------------------------------
-@login_required
-@group_required('Organizer', 'Admin')
-def add_event(request):
-    if request.method == "POST":
-        form = EventModelForm(request.POST, request.FILES)
-        if form.is_valid():
-            event = form.save(commit=False)
-            if hasattr(event, 'created_by'):
-                event.created_by = request.user
-            event.save()
-            messages.success(request, "Event created successfully!")
-            return redirect('dashboard_redirect')  # or 'edit_profile'
-        messages.error(request, "Please correct the errors in the form.")
-    else:
-        form = EventModelForm()
-
-    return render(request, "events/add_event.html", {"form": form})
-
-
-@login_required
-@group_required('Organizer', 'Admin')
-def edit_event(request, event_id):
-    event = get_object_or_404(Event, pk=event_id)
-
-    if request.user.groups.filter(name='Organizer').exists():
-        if hasattr(event, 'created_by') and event.created_by != request.user:
-            messages.error(request, "You are not allowed to edit this event.")
-            return redirect('dashboard_redirect')
-
-    if request.method == "POST":
-        form = EventModelForm(request.POST, request.FILES, instance=event)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Event updated successfully!")
-            return redirect('dashboard_redirect')
-        messages.error(request, "Please correct the errors in the form.")
-    else:
-        form = EventModelForm(instance=event)
-
-    return render(request, "events/edit_event.html", {"form": form, "event": event})
 
 
 @login_required
@@ -205,9 +203,6 @@ def delete_event(request, event_id):
     return render(request, "events/delete_confirm.html", {"event": event})
 
 
-# ----------------------------------------
-# RSVP
-# ----------------------------------------
 @login_required
 def rsvp_event(request, event_id):
     event = get_object_or_404(Event, pk=event_id)
@@ -235,9 +230,6 @@ def rsvp_event(request, event_id):
     return redirect('event_detail', event_id=event.id)
 
 
-# ----------------------------------------
-# Admin Control
-# ----------------------------------------
 @login_required
 @group_required('Admin')
 def users_control_view(request):
@@ -276,9 +268,6 @@ def users_control_view(request):
     return render(request, 'events/users_control.html', {'users': users, 'groups': groups})
 
 
-# ----------------------------------------
-# Organizer/Admin Control
-# ----------------------------------------
 @login_required
 @group_required('Organizer', 'Admin')
 def events_control_view(request):
@@ -321,9 +310,6 @@ def categories_control_view(request):
     return render(request, 'events/categories_control.html', {'categories': categories})
 
 
-# ----------------------------------------
-# Profile Edit
-# ----------------------------------------
 @login_required
 def edit_profile(request):
     if request.method == "POST":
@@ -342,15 +328,8 @@ def edit_profile(request):
     })
 
 
-# ----------------------------------------
-# Attended Events
-# ----------------------------------------
 @login_required
 def attended_events(request):
-    """
-    Show events the current user has RSVP'd to.
-    Include 'Add Event' nav permission flag.
-    """
     events = Event.objects.filter(rsvps=request.user).order_by('-date')
 
     can_add_event = (
