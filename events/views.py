@@ -24,11 +24,6 @@ def group_required(*group_names):
     """
     Decorator to restrict access to users in specific groups.
     Superusers bypass group checks.
-    Usage:
-      @login_required
-      @group_required('Admin', 'Organizer')
-      def my_view(...):
-          ...
     """
     def in_groups(u):
         if u.is_authenticated:
@@ -41,7 +36,7 @@ def group_required(*group_names):
 
 
 # ----------------------------------------
-# Public Views (No login required)
+# Public Views
 # ----------------------------------------
 def index(request):
     return render(request, "events/home.html")
@@ -53,7 +48,7 @@ def home(request):
 
 def all_events(request):
     """
-    Show all events with optional filtering by search query, category, and date range.
+    Show all events with optional filtering.
     """
     search_query = request.GET.get('q', '')
     category_id = request.GET.get('category')
@@ -99,62 +94,69 @@ def event_detail(request, event_id):
 
 
 # ----------------------------------------
-# Dashboards & Redirects
+# Unified Dashboard View rendering profile edit by default
 # ----------------------------------------
 @login_required
-@group_required('Admin')
-def admin_dashboard(request):
-    """
-    Admin Dashboard redirects to Users control page.
-    """
-    return redirect('users_control')
+def dashboard_view(request):
+    user = request.user
+    is_admin = user.is_superuser or user.groups.filter(name='Admin').exists()
+    is_organizer = user.groups.filter(name='Organizer').exists()
+    is_participant = not (is_admin or is_organizer)
+
+    context = {
+        "user": user,
+        "is_admin": is_admin,
+        "is_organizer": is_organizer,
+        "is_participant": is_participant,
+        "can_add_event": is_admin or is_organizer,
+    }
+
+    # Add role-specific data
+    if is_admin:
+        context["users"] = User.objects.all()
+        context["total_events"] = Event.objects.count()
+    elif is_organizer:
+        context["events"] = Event.objects.filter(created_by=user).order_by('-date')
+    else:
+        context["events"] = Event.objects.filter(rsvps=user).order_by('-date')
+
+    # Pass a flag to indicate showing profile edit section by default
+    context["show_profile_edit"] = True
+
+    return render(request, "events/dashboard.html", context)
 
 
-@login_required
-@group_required('Organizer')
-def organizer_dashboard(request):
-    # Redirect to profile edit page by default
-    return redirect('edit_profile')
 
 
-@login_required
-def participant_dashboard(request):
-    # Redirect to profile edit page by default
-    return redirect('attended_events')
 
 
+# ----------------------------------------
+# Redirect to dashboard_view or profile edit
+# ----------------------------------------
 @login_required
 def redirect_dashboard(request):
     """
-    Redirect user to their respective dashboard based on role.
+    Redirect /dashboard/ to profile edit page.
     """
-    user = request.user
-    if user.is_superuser or user.groups.filter(name='Admin').exists():
-        return redirect('admin_dashboard')
-    elif user.groups.filter(name='Organizer').exists():
-        return redirect('organizer_dashboard')
-    else:
-        return redirect('participant_dashboard')
+    # Redirect directly to profile edit page
+    return redirect('edit_profile')
 
 
 # ----------------------------------------
-# Event CRUD (Organizer/Admin)
+# Event CRUD
 # ----------------------------------------
 @login_required
 @group_required('Organizer', 'Admin')
 def add_event(request):
-    """
-    Add new event - Organizer or Admin only.
-    """
     if request.method == "POST":
-        form = EventModelForm(request.POST)
+        form = EventModelForm(request.POST, request.FILES)
         if form.is_valid():
             event = form.save(commit=False)
             if hasattr(event, 'created_by'):
                 event.created_by = request.user
             event.save()
             messages.success(request, "Event created successfully!")
-            return redirect('all_events')
+            return redirect('dashboard_redirect')  # or 'edit_profile'
         messages.error(request, "Please correct the errors in the form.")
     else:
         form = EventModelForm()
@@ -165,24 +167,19 @@ def add_event(request):
 @login_required
 @group_required('Organizer', 'Admin')
 def edit_event(request, event_id):
-    """
-    Edit existing event.
-    Organizer can edit only their own events.
-    """
     event = get_object_or_404(Event, pk=event_id)
 
-    # Ownership check for Organizer
     if request.user.groups.filter(name='Organizer').exists():
         if hasattr(event, 'created_by') and event.created_by != request.user:
             messages.error(request, "You are not allowed to edit this event.")
-            return redirect('dashboard')
+            return redirect('dashboard_redirect')
 
     if request.method == "POST":
-        form = EventModelForm(request.POST, instance=event)
+        form = EventModelForm(request.POST, request.FILES, instance=event)
         if form.is_valid():
             form.save()
             messages.success(request, "Event updated successfully!")
-            return redirect('all_events')
+            return redirect('dashboard_redirect')
         messages.error(request, "Please correct the errors in the form.")
     else:
         form = EventModelForm(instance=event)
@@ -193,71 +190,57 @@ def edit_event(request, event_id):
 @login_required
 @group_required('Organizer', 'Admin')
 def delete_event(request, event_id):
-    """
-    Delete event after confirmation.
-    Organizer can delete only their own events.
-    """
     event = get_object_or_404(Event, pk=event_id)
 
-    # Ownership check for Organizer
     if request.user.groups.filter(name='Organizer').exists():
         if hasattr(event, 'created_by') and event.created_by != request.user:
             messages.error(request, "You are not allowed to delete this event.")
-            return redirect('dashboard')
+            return redirect('dashboard_redirect')
 
     if request.method == "POST":
         event.delete()
         messages.success(request, "Event deleted successfully!")
-        return redirect('dashboard')
+        return redirect('dashboard_redirect')
 
     return render(request, "events/delete_confirm.html", {"event": event})
 
 
 # ----------------------------------------
-# RSVP functionality
+# RSVP
 # ----------------------------------------
 @login_required
 def rsvp_event(request, event_id):
-    """
-    RSVP current user to event.
-    Sends confirmation email silently.
-    """
     event = get_object_or_404(Event, pk=event_id)
 
     if event.rsvps.filter(id=request.user.id).exists():
-        messages.warning(request, "You have already attended to this event.")
+        messages.warning(request, "You have already attended this event.")
     else:
         event.rsvps.add(request.user)
-        messages.success(request, "You have successfully attended to the event.")
+        messages.success(request, "You have successfully attended the event.")
 
-        # Send confirmation email
         try:
             send_mail(
                 subject=f"Renova's Event Alert for {event.name}",
                 message=(
                     f"Hello {request.user.first_name or request.user.username},\n\n"
-                    f"You have successfully attended for the event '{event.name}' on {event.date}.\n\nThanks!"
+                    f"You have successfully attended the event '{event.name}' on {event.date}.\n\nThanks!"
                 ),
                 from_email=getattr(settings, 'EMAIL_HOST_USER', None),
                 recipient_list=[request.user.email],
                 fail_silently=True,
             )
         except Exception:
-            # Ignore email errors
             pass
 
     return redirect('event_detail', event_id=event.id)
 
 
 # ----------------------------------------
-# Admin Control Views (User Management)
+# Admin Control
 # ----------------------------------------
 @login_required
 @group_required('Admin')
 def users_control_view(request):
-    """
-    Admin view to manage users: delete, activate/deactivate, change roles.
-    """
     users = User.objects.all().order_by('username')
     groups = ['Participant', 'Organizer', 'Admin']
 
@@ -294,14 +277,11 @@ def users_control_view(request):
 
 
 # ----------------------------------------
-# Organizer Control Views (Events & Categories)
+# Organizer/Admin Control
 # ----------------------------------------
 @login_required
 @group_required('Organizer', 'Admin')
 def events_control_view(request):
-    """
-    Organizer/Admin view to manage all events.
-    """
     events = Event.objects.all().order_by('-date')
 
     if request.method == "POST":
@@ -319,9 +299,6 @@ def events_control_view(request):
 @login_required
 @group_required('Organizer', 'Admin')
 def categories_control_view(request):
-    """
-    Organizer/Admin view to add/delete categories.
-    """
     categories = Category.objects.all()
 
     if request.method == "POST":
@@ -345,14 +322,10 @@ def categories_control_view(request):
 
 
 # ----------------------------------------
-# Profile Edit View
+# Profile Edit
 # ----------------------------------------
 @login_required
 def edit_profile(request):
-    """
-    Allow to update only first and last name.
-    Preloads current data into the form.
-    """
     if request.method == "POST":
         first_name = request.POST.get("first_name")
         last_name = request.POST.get("last_name")
@@ -362,22 +335,30 @@ def edit_profile(request):
         request.user.save()
 
         messages.success(request, "Profile updated successfully!")
-        return redirect("edit_profile")  # Stay on the same page after save
+        return redirect("edit_profile")
 
-    # GET request → show current values
     return render(request, "events/edit_profile.html", {
         "user": request.user
     })
 
 
-
-
-
-
-
-
+# ----------------------------------------
+# Attended Events
+# ----------------------------------------
 @login_required
 def attended_events(request):
-    # Assuming rsvps is a ManyToMany to User or a related name from another model
-    events = Event.objects.filter(rsvps=request.user)
-    return render(request, "events/attended_events.html", {"events": events})
+    """
+    Show events the current user has RSVP'd to.
+    Include 'Add Event' nav permission flag.
+    """
+    events = Event.objects.filter(rsvps=request.user).order_by('-date')
+
+    can_add_event = (
+        request.user.is_superuser or
+        request.user.groups.filter(name__in=['Admin', 'Organizer']).exists()
+    )
+
+    return render(request, "events/attended_events.html", {
+        "events": events,
+        "can_add_event": can_add_event
+    })

@@ -163,7 +163,8 @@ EMAIL_HOST_USER = config('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 
 
-FRONTEND_URL='https://renova-ffyl.onrender.com'
+# FRONTEND_URL='https://renova-ffyl.onrender.com'
+FRONTEND_URL='http://127.0.0.1:8000'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
