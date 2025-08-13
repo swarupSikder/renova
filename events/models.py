@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.conf import settings
 
 # - - - - - - - - - - #
 #    Category Model   #
@@ -15,7 +15,8 @@ class Category(models.Model):
     description = models.TextField(blank=True, null=True)
 
     def __str__(self):
-        return self.name
+        return self.get_name_display()
+
     
 
 
@@ -30,25 +31,16 @@ class Event(models.Model):
     date = models.DateField()
     time = models.TimeField()
     location = models.CharField(max_length=150)
-    # category (ForeignKey)
-    category = models.ForeignKey(
-        Category,
-        on_delete=models.CASCADE,
-        default=1,
-        related_name='events',
-    )
-    rsvps = models.ManyToManyField(User, related_name='rsvp_events', blank=True)
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='created_events')
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, default=1, related_name='events')
 
-    # New Image Field
-    image = models.ImageField(
-        upload_to='event_images/',
-        default='event_images/default.jpg'
-    )
+    # Use settings.AUTH_USER_MODEL for relations to the user model
+    rsvps = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='rsvp_events', blank=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='created_events')
 
+    image = models.ImageField(upload_to='event_images/', default='event_images/default.jpg')
 
     def __str__(self):
-        return f"Event Name: {self.name}"
+        return self.name
 
 
 
