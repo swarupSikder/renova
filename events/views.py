@@ -3,10 +3,9 @@ from django.contrib import messages
 from django.db.models import Q
 from datetime import date
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import User, Group
 from django.core.mail import send_mail
 from django.conf import settings
-from django.contrib.auth import get_user_model
 
 from django.views.generic import TemplateView, ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
@@ -14,12 +13,6 @@ from django.urls import reverse_lazy
 
 from .forms import EventModelForm
 from .models import Event, Participant, Category
-
-
-
-
-# Get User
-User = settings.AUTH_USER_MODEL
 
 # Try to import OrganizerProfile if it exists (optional profile model)
 try:

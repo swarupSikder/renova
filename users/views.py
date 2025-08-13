@@ -1,22 +1,24 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login, logout, get_user_model
+from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from .forms import CustomUserCreationForm
 from django.utils.http import urlsafe_base64_decode
+from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
 
-User = get_user_model()
+
 
 # - - - - - - - - - - #
 #     Sign Up View    #
 # - - - - - - - - - - #
 def signup_view(request):
     if request.method == 'POST':
-        form = CustomUserCreationForm(request.POST, request.FILES)  # Include files for profile picture
+        form = CustomUserCreationForm(request.POST)
         if form.is_valid():
-            user = form.save(commit=False)  # password is hashed by form
-            user.is_active = False  # Require email activation
+            user = form.save(commit=False)  # password is already hashed
+            user.is_active = False
             user.save()
+
             messages.success(request, "A confirmation mail was sent. Please check your email.")
             return redirect('login')
         else:
@@ -24,6 +26,11 @@ def signup_view(request):
     else:
         form = CustomUserCreationForm()
     return render(request, 'users/signup.html', {'form': form})
+
+
+
+
+
 
 # - - - - - - - - - - - #
 #     Activation View   #
@@ -43,6 +50,13 @@ def activate_account(request, uidb64, token):
     else:
         messages.error(request, "Activation link is invalid or has expired.")
         return redirect('signup')
+
+
+
+
+
+
+
 
 # - - - - - - - - - #
 #     Login View    #
@@ -64,6 +78,7 @@ def login_view(request):
             messages.error(request, "Invalid username or password.")
 
     return render(request, "users/login.html")
+
 
 # - - - - - - - - - - #
 #     Logout View     #
