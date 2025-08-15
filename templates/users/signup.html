@@ -1,7 +1,7 @@
 {% extends 'auth.html' %}
 {% block content %}
 <div class="min-h-screen flex justify-center items-center bg-gray-100 px-4">
-  <form method="POST" class="bg-white p-8 rounded shadow-md w-full max-w-md">
+  <form method="POST" enctype="multipart/form-data" class="bg-white p-8 rounded shadow-md w-full max-w-md">
     <h2 class="text-2xl font-bold mb-4 text-orange-600">Create Account</h2>
     {% csrf_token %}
     {% for field in form %}

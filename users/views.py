@@ -1,40 +1,36 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.contrib import messages
-from .forms import CustomUserCreationForm
 from django.utils.http import urlsafe_base64_decode
-from django.contrib.auth.models import User
 from django.contrib.auth.tokens import default_token_generator
+from .forms import CustomUserCreationForm
+
+User = get_user_model()  # Always use this for custom user models
 
 
-
-# - - - - - - - - - - #
-#     Sign Up View    #
-# - - - - - - - - - - #
+# -------------------- #
+#     Sign Up View     #
+# -------------------- #
 def signup_view(request):
     if request.method == 'POST':
-        form = CustomUserCreationForm(request.POST)
+        form = CustomUserCreationForm(request.POST, request.FILES)  # handle image upload
         if form.is_valid():
-            user = form.save(commit=False)  # password is already hashed
-            user.is_active = False
+            user = form.save(commit=False)
+            user.is_active = False  # Require email confirmation
             user.save()
-
             messages.success(request, "A confirmation mail was sent. Please check your email.")
             return redirect('login')
         else:
             messages.error(request, "Form is not valid!")
     else:
         form = CustomUserCreationForm()
+
     return render(request, 'users/signup.html', {'form': form})
 
 
-
-
-
-
-# - - - - - - - - - - - #
-#     Activation View   #
-# - - - - - - - - - - - #
+# -------------------- #
+#   Activation View    #
+# -------------------- #
 def activate_account(request, uidb64, token):
     try:
         uid = urlsafe_base64_decode(uidb64).decode()
@@ -42,7 +38,7 @@ def activate_account(request, uidb64, token):
     except (TypeError, ValueError, OverflowError, User.DoesNotExist):
         user = None
 
-    if user is not None and default_token_generator.check_token(user, token):
+    if user and default_token_generator.check_token(user, token):
         user.is_active = True
         user.save()
         messages.success(request, "Your account has been activated! You can now log in.")
@@ -52,22 +48,16 @@ def activate_account(request, uidb64, token):
         return redirect('signup')
 
 
-
-
-
-
-
-
-# - - - - - - - - - #
-#     Login View    #
-# - - - - - - - - - #
+# -------------------- #
+#      Login View      #
+# -------------------- #
 def login_view(request):
     if request.method == "POST":
         username = request.POST.get("username")
         password = request.POST.get("password")
         user = authenticate(request, username=username, password=password)
 
-        if user is not None:
+        if user:
             if user.is_active:
                 login(request, user)
                 messages.success(request, f"Welcome back, {user.first_name or user.username}!")
@@ -80,9 +70,9 @@ def login_view(request):
     return render(request, "users/login.html")
 
 
-# - - - - - - - - - - #
-#     Logout View     #
-# - - - - - - - - - - #
+# -------------------- #
+#      Logout View     #
+# -------------------- #
 def logout_view(request):
     logout(request)
     messages.info(request, "You've been logged out.")

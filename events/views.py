@@ -3,9 +3,11 @@ from django.contrib import messages
 from django.db.models import Q
 from datetime import date
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.auth.models import User, Group
+from django.contrib.auth.models import Group
 from django.core.mail import send_mail
 from django.conf import settings
+from django.contrib.auth import get_user_model
+User = get_user_model()
 
 from django.views.generic import TemplateView, ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
