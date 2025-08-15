@@ -145,6 +145,16 @@ class AddEventView(LoginRequiredMixin, GroupRequiredMixin, CreateView):
         messages.error(self.request, "Please correct the errors in the form.")
         return super().form_invalid(form)
 
+    # --- ADD THIS ---
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        context["user"] = user
+        context["is_admin"] = user.is_superuser or user.groups.filter(name='Admin').exists()
+        context["is_organizer"] = user.groups.filter(name='Organizer').exists()
+        context["is_participant"] = not (context["is_admin"] or context["is_organizer"])
+        return context
+
 
 class EditEventView(LoginRequiredMixin, GroupRequiredMixin, UpdateView):
     model = Event
@@ -170,8 +180,10 @@ class EditEventView(LoginRequiredMixin, GroupRequiredMixin, UpdateView):
         messages.error(self.request, "Please correct the errors in the form.")
         return super().form_invalid(form)
 
+
+
 # ----------------------------------------
-# FBVs for the rest (keep same)
+# FBVs for the rest (keep same, but pass role flags)
 # ----------------------------------------
 
 def index(request):
@@ -184,7 +196,13 @@ def home(request):
 
 @login_required
 def redirect_dashboard(request):
-    return redirect('edit_profile')
+    user = request.user
+    if user.is_superuser or user.groups.filter(name='Admin').exists():
+        return redirect('dashboard')          # admin dashboard
+    elif user.groups.filter(name='Organizer').exists():
+        return redirect('dashboard')          # organizer dashboard
+    else:
+        return redirect('edit_profile')       # participant
 
 
 @login_required
@@ -202,7 +220,18 @@ def delete_event(request, event_id):
         messages.success(request, "Event deleted successfully!")
         return redirect('dashboard_redirect')
 
-    return render(request, "events/delete_confirm.html", {"event": event})
+    # Pass role flags to template
+    user = request.user
+    is_admin = user.is_superuser or user.groups.filter(name='Admin').exists()
+    is_organizer = user.groups.filter(name='Organizer').exists()
+    is_participant = not (is_admin or is_organizer)
+
+    return render(request, "events/delete_confirm.html", {
+        "event": event,
+        "is_admin": is_admin,
+        "is_organizer": is_organizer,
+        "is_participant": is_participant,
+    })
 
 
 @login_required
@@ -267,7 +296,18 @@ def users_control_view(request):
 
         return redirect('users_control')
 
-    return render(request, 'events/users_control.html', {'users': users, 'groups': groups})
+    user = request.user
+    is_admin = user.is_superuser or user.groups.filter(name='Admin').exists()
+    is_organizer = user.groups.filter(name='Organizer').exists()
+    is_participant = not (is_admin or is_organizer)
+
+    return render(request, 'events/users_control.html', {
+        'users': users,
+        'groups': groups,
+        'is_admin': is_admin,
+        'is_organizer': is_organizer,
+        'is_participant': is_participant,
+    })
 
 
 @login_required
@@ -284,7 +324,17 @@ def events_control_view(request):
             messages.success(request, f'Event "{event.name}" deleted.')
             return redirect('events_control')
 
-    return render(request, 'events/events_control.html', {'events': events})
+    user = request.user
+    is_admin = user.is_superuser or user.groups.filter(name='Admin').exists()
+    is_organizer = user.groups.filter(name='Organizer').exists()
+    is_participant = not (is_admin or is_organizer)
+
+    return render(request, 'events/events_control.html', {
+        'events': events,
+        'is_admin': is_admin,
+        'is_organizer': is_organizer,
+        'is_participant': is_participant,
+    })
 
 
 @login_required
@@ -309,24 +359,59 @@ def categories_control_view(request):
             messages.success(request, f'Category "{category.name}" deleted.')
         return redirect('categories_control')
 
-    return render(request, 'events/categories_control.html', {'categories': categories})
+    user = request.user
+    is_admin = user.is_superuser or user.groups.filter(name='Admin').exists()
+    is_organizer = user.groups.filter(name='Organizer').exists()
+    is_participant = not (is_admin or is_organizer)
+
+    return render(request, 'events/categories_control.html', {
+        'categories': categories,
+        'is_admin': is_admin,
+        'is_organizer': is_organizer,
+        'is_participant': is_participant,
+    })
+
+
+@login_required
+def profile_view(request):
+    user = request.user
+    is_admin = user.is_superuser or user.groups.filter(name='Admin').exists()
+    is_organizer = user.groups.filter(name='Organizer').exists()
+    is_participant = not (is_admin or is_organizer)
+
+    return render(request, "events/profile.html", {
+        "user": user,
+        "is_admin": is_admin,
+        "is_organizer": is_organizer,
+        "is_participant": is_participant,
+    })
 
 
 @login_required
 def edit_profile(request):
+    user = request.user
+    is_admin = user.is_superuser or user.groups.filter(name='Admin').exists()
+    is_organizer = user.groups.filter(name='Organizer').exists()
+    is_participant = not (is_admin or is_organizer)
+
     if request.method == "POST":
-        first_name = request.POST.get("first_name")
-        last_name = request.POST.get("last_name")
+        user.first_name = request.POST.get("first_name", "").strip()
+        user.last_name = request.POST.get("last_name", "").strip()
 
-        request.user.first_name = first_name
-        request.user.last_name = last_name
-        request.user.save()
+        # If you allow profile picture uploads
+        if hasattr(user, 'profile') and 'profile_picture' in request.FILES:
+            user.profile.profile_picture = request.FILES['profile_picture']
+            user.profile.save()
 
+        user.save()
         messages.success(request, "Profile updated successfully!")
         return redirect("edit_profile")
 
     return render(request, "events/edit_profile.html", {
-        "user": request.user
+        "user": user,
+        "is_admin": is_admin,
+        "is_organizer": is_organizer,
+        "is_participant": is_participant,
     })
 
 
@@ -334,12 +419,17 @@ def edit_profile(request):
 def attended_events(request):
     events = Event.objects.filter(rsvps=request.user).order_by('-date')
 
-    can_add_event = (
-        request.user.is_superuser or
-        request.user.groups.filter(name__in=['Admin', 'Organizer']).exists()
-    )
+    user = request.user
+    is_admin = user.is_superuser or user.groups.filter(name='Admin').exists()
+    is_organizer = user.groups.filter(name='Organizer').exists()
+    is_participant = not (is_admin or is_organizer)
+
+    can_add_event = is_admin or is_organizer
 
     return render(request, "events/attended_events.html", {
         "events": events,
-        "can_add_event": can_add_event
+        "can_add_event": can_add_event,
+        "is_admin": is_admin,
+        "is_organizer": is_organizer,
+        "is_participant": is_participant,
     })

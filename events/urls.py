@@ -14,6 +14,7 @@ from .views import (
     categories_control_view,
     edit_profile,
     attended_events,
+    profile_view,  # ✅ newly added
 )
 
 urlpatterns = [
@@ -25,7 +26,8 @@ urlpatterns = [
     # Dashboard root - uses CBV
     path('dashboard/', DashboardView.as_view(), name='dashboard'),
 
-    # Profile edit page - FBV
+    # Profile pages
+    path('dashboard/profile/', profile_view, name='profile'),  # ✅ new profile view
     path('dashboard/profile/edit/', edit_profile, name='edit_profile'),
 
     # Event detail and RSVP - detail is CBV, RSVP is FBV
