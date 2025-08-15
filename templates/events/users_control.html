@@ -71,7 +71,7 @@
             {% csrf_token %}
             <input type="hidden" name="user_id" value="{{ user.id }}">
             <input type="hidden" name="action" value="change_role">
-            <select name="new_role" class="border border-gray-300 rounded px-3 py-1 text-sm text-gray-700 hover:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-400" onchange="this.form.submit()">
+            <select name="new_role" class="border border-gray-300 rounded bg-white px-3 py-1 text-sm text-gray-700 hover:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-400" onchange="this.form.submit()">
               <option value="">Change Role</option>
               {% for group in groups %}
                 <option value="{{ group }}" {% if user.groups.all.first.name == group %}selected{% endif %}>{{ group }}</option>

@@ -12,6 +12,8 @@ User = get_user_model()
 from django.views.generic import TemplateView, ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.urls import reverse_lazy
+from django.contrib.auth.views import PasswordChangeView
+from django.contrib.auth.views import PasswordResetView
 
 from .forms import EventModelForm
 from .models import Event, Participant, Category
@@ -145,7 +147,7 @@ class AddEventView(LoginRequiredMixin, GroupRequiredMixin, CreateView):
         messages.error(self.request, "Please correct the errors in the form.")
         return super().form_invalid(form)
 
-    # --- ADD THIS ---
+    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = self.request.user
@@ -433,3 +435,53 @@ def attended_events(request):
         "is_organizer": is_organizer,
         "is_participant": is_participant,
     })
+
+
+class CustomPasswordChangeView(LoginRequiredMixin, PasswordChangeView):
+    template_name = 'events/change_password.html'
+    success_url = reverse_lazy('password_change_done')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        is_admin = user.is_superuser or user.groups.filter(name='Admin').exists()
+        is_organizer = user.groups.filter(name='Organizer').exists()
+        is_participant = not (is_admin or is_organizer)
+
+        context.update({
+            "user": user,
+            "is_admin": is_admin,
+            "is_organizer": is_organizer,
+            "is_participant": is_participant,
+            "can_add_event": is_admin or is_organizer,
+            "show_profile_edit": True,
+        })
+        return context
+    
+
+class CustomPasswordResetView(PasswordResetView):
+    template_name = 'events/password_reset.html'
+    email_template_name = 'events/password_reset_email.html'
+    subject_template_name = 'events/password_reset_subject.txt'
+    success_url = reverse_lazy('password_reset_done')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user if self.request.user.is_authenticated else None
+
+        if user:
+            is_admin = user.is_superuser or user.groups.filter(name='Admin').exists()
+            is_organizer = user.groups.filter(name='Organizer').exists()
+            is_participant = not (is_admin or is_organizer)
+        else:
+            is_admin = is_organizer = is_participant = False
+
+        context.update({
+            "user": user,
+            "is_admin": is_admin,
+            "is_organizer": is_organizer,
+            "is_participant": is_participant,
+            "can_add_event": is_admin or is_organizer,
+            "show_profile_edit": user is not None,
+        })
+        return context
